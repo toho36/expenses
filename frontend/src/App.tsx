@@ -1,16 +1,37 @@
-import { useState } from 'react';
-import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
+import { useQuery } from '@tanstack/react-query';
+import { api } from './lib/api';
+
+async function getTotalSpent() {
+  const res = await api.expenses['total-spent'].$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+  const data = await res.json();
+  return data;
+}
 function App() {
-  const [count, setCount] = useState(0);
+  const { isPending, error, data } = useQuery({
+    queryKey: ['get-total-spent'],
+    queryFn: getTotalSpent,
+  });
+  if (error) return 'An error has occured: ' + error.message;
 
   return (
-    <>
-      <div className="flex flex-col bg-background max-w-md m-auto gap-y-5">
-        <Button onClick={() => setCount((count) => count + 1)}>Up</Button>
-        <Button onClick={() => setCount((count) => count - 1)}>Downs</Button>
-        <div className="text-center">{count} vercel</div>
-      </div>
-    </>
+    <Card className="w-[350px] m-auto">
+      <CardHeader>
+        <CardTitle>Total spent</CardTitle>
+        <CardDescription>Total amount spent</CardDescription>
+      </CardHeader>
+      <CardContent>{isPending ? '...' : data.total}</CardContent>
+    </Card>
   );
 }
 
