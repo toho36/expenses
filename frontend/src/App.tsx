@@ -1,5 +1,3 @@
-import { useState } from 'react';
-
 import {
   Card,
   CardContent,
@@ -8,8 +6,23 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 
+import { useQuery } from '@tanstack/react-query';
+import { api } from './lib/api';
+
+async function getTotalSpent() {
+  const res = await api.expenses['total-spent'].$get();
+  if (!res.ok) {
+    throw new Error('server error');
+  }
+  const data = await res.json();
+  return data;
+}
 function App() {
-  const [totalSpent, setTotalSpent] = useState(0);
+  const { isPending, error, data } = useQuery({
+    queryKey: ['get-total-spent'],
+    queryFn: getTotalSpent,
+  });
+  if (error) return 'An error has occured: ' + error.message;
 
   return (
     <Card className="w-[350px] m-auto">
@@ -17,7 +30,7 @@ function App() {
         <CardTitle>Total spent</CardTitle>
         <CardDescription>Total amount spent</CardDescription>
       </CardHeader>
-      <CardContent>{totalSpent}</CardContent>
+      <CardContent>{isPending ? '...' : data.total}</CardContent>
     </Card>
   );
 }
