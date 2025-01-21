@@ -167,7 +167,7 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-
+fly-deploy.yml
 # IntelliJ based IDEs
 .idea
 
