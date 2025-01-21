@@ -15,7 +15,7 @@ Run the following command in the project root directory:
 bun install
 ```
 
-Running the App
+# Running the App
 The app consists of a server and a frontend, which need to run simultaneously.
 
 1. Start the Server
