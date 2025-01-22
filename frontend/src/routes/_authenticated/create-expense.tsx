@@ -1,17 +1,17 @@
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 
-import { useForm } from '@tanstack/react-form';
-import { api } from '@/lib/api';
+import { useForm } from '@tanstack/react-form'
+import { api } from '@/lib/api'
 
-export const Route = createFileRoute('/create-expense')({
+export const Route = createFileRoute('/_authenticated/create-expense')({
   component: CreateExpense,
-});
+})
 
 function CreateExpense() {
-  const navigate = useNavigate();
+  const navigate = useNavigate()
   const form = useForm({
     defaultValues: {
       title: '',
@@ -24,22 +24,22 @@ function CreateExpense() {
           ...value,
           amount: Number(value.amount),
         },
-      });
+      })
       if (!res.ok) {
-        throw new Error('server error');
+        throw new Error('server error')
       }
-      navigate({ to: '/expenses' });
+      navigate({ to: '/expenses' })
     },
-  });
+  })
 
   return (
     <div className="p-2">
       <h2>Create Expense</h2>
       <form
         onSubmit={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          form.handleSubmit();
+          e.preventDefault()
+          e.stopPropagation()
+          form.handleSubmit()
         }}
         className="max-w-xl m-auto"
       >
@@ -63,7 +63,7 @@ function CreateExpense() {
                 ) : null}
                 {field.state.meta.isValidating ? 'Validating...' : null}
               </>
-            );
+            )
           }}
         />
         <form.Field
@@ -87,7 +87,7 @@ function CreateExpense() {
                 ) : null}
                 {field.state.meta.isValidating ? 'Validating...' : null}
               </>
-            );
+            )
           }}
         />
         <form.Subscribe
@@ -100,5 +100,5 @@ function CreateExpense() {
         />
       </form>
     </div>
-  );
+  )
 }
