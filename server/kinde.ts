@@ -3,7 +3,8 @@ import {
   GrantType,
   type SessionManager,
 } from '@kinde-oss/kinde-typescript-sdk';
-
+import { type Context } from 'hono';
+import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 // Client for authorization code flow
 export const kindeClient = createKindeServerClient(
   GrantType.AUTHORIZATION_CODE,
@@ -18,17 +19,36 @@ export const kindeClient = createKindeServerClient(
 
 let store: Record<string, unknown> = {};
 
-export const sessionManager: SessionManager = {
+export const sessionManager = (c: Context): SessionManager => ({
   async getSessionItem(key: string) {
-    return store[key];
+    const result = getCookie(c, key);
+    return result || null;
   },
   async setSessionItem(key: string, value: unknown) {
-    store[key] = value;
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'Lax',
+    } as const;
+    if (typeof value === 'string') {
+      setCookie(c, key, value, cookieOptions);
+    } else {
+      try {
+        setCookie(c, key, JSON.stringify(value), cookieOptions);
+      } catch (error) {
+        console.error(
+          `Error serializing cookie value for key "${key}":`,
+          error
+        );
+      }
+    }
   },
   async removeSessionItem(key: string) {
-    delete store[key];
+    deleteCookie(c, key);
   },
   async destroySession() {
-    store = {};
+    ['id_token', 'access_token', 'user', 'refresh_token'].forEach((key) => {
+      deleteCookie(c, key);
+    });
   },
-};
+});
