@@ -170,6 +170,6 @@ dist
 fly-deploy.yml
 # IntelliJ based IDEs
 .idea
-
+.env
 # Finder (MacOS) folder config
 .DS_Store
