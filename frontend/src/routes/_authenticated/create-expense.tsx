@@ -40,7 +40,7 @@ function CreateExpense() {
           e.stopPropagation();
           form.handleSubmit();
         }}
-        className="max-w-xl m-auto"
+        className="flex flex-col gap-y-4 max-w-xl m-auto"
       >
         <form.Field
           name="title"
@@ -50,7 +50,7 @@ function CreateExpense() {
           children={(field) => {
             // Avoid hasty abstractions. Render props are great!
             return (
-              <>
+              <div>
                 <Label htmlFor={field.name}>Title</Label>
                 <Input
                   id={field.name}
@@ -64,7 +64,7 @@ function CreateExpense() {
                   <em>{field.state.meta.errors.join(', ')}</em>
                 ) : null}
                 {field.state.meta.isValidating ? 'Validating...' : null}
-              </>
+              </div>
             );
           }}
         />
@@ -76,7 +76,7 @@ function CreateExpense() {
           children={(field) => {
             // Avoid hasty abstractions. Render props are great!
             return (
-              <>
+              <div>
                 <Label htmlFor={field.name}>Amount</Label>
                 <Input
                   id={field.name}
@@ -91,7 +91,7 @@ function CreateExpense() {
                   <em>{field.state.meta.errors.join(', ')}</em>
                 ) : null}
                 {field.state.meta.isValidating ? 'Validating...' : null}
-              </>
+              </div>
             );
           }}
         />
