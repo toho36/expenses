@@ -6,6 +6,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
 import { api } from '@/lib/api';
 
+import { createExpenseSchema } from '@server/sharedTypes';
+
 export const Route = createFileRoute('/_authenticated/create-expense')({
   component: CreateExpense,
 });
@@ -42,6 +44,9 @@ function CreateExpense() {
       >
         <form.Field
           name="title"
+          validators={{
+            onChange: createExpenseSchema.shape.title,
+          }}
           children={(field) => {
             // Avoid hasty abstractions. Render props are great!
             return (
@@ -65,6 +70,9 @@ function CreateExpense() {
         />
         <form.Field
           name="amount"
+          validators={{
+            onChange: createExpenseSchema.shape.amount,
+          }}
           children={(field) => {
             // Avoid hasty abstractions. Render props are great!
             return (
