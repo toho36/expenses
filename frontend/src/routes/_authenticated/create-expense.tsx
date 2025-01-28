@@ -5,6 +5,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 
 import { useForm } from '@tanstack/react-form';
 import { api } from '@/lib/api';
+import { Calendar } from '@/components/ui/calendar';
 
 import { createExpenseSchema } from '@server/sharedTypes';
 
@@ -18,6 +19,7 @@ function CreateExpense() {
     defaultValues: {
       title: '',
       amount: '0',
+      date: new Date().toISOString(),
     },
     onSubmit: async ({ value }) => {
       // Do something with form data
@@ -94,6 +96,27 @@ function CreateExpense() {
               </div>
             );
           }}
+        />
+        <form.Field
+          name="date"
+          validators={{
+            onChange: createExpenseSchema.shape.date,
+          }}
+          children={
+            (field) => (
+              <div className="self-center">
+                <Calendar
+                  mode="single"
+                  selected={new Date(field.state.value)}
+                  onSelect={(date) =>
+                    field.handleChange((date ?? new Date()).toISOString())
+                  }
+                  className="rounded-md border"
+                />
+              </div>
+            )
+            // Avoid hasty abstractions. Render props are great!
+          }
         />
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting]}
