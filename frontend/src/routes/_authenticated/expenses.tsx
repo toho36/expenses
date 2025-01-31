@@ -1,6 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { getAllExpensesQueryOptions } from '@/lib/api';
 import {
   Table,
   TableBody,
@@ -15,20 +15,8 @@ export const Route = createFileRoute('/_authenticated/expenses')({
 });
 import { Skeleton } from '@/components/ui/skeleton';
 
-async function getAllExpenses() {
-  const res = await api.expenses.$get();
-  if (!res.ok) {
-    throw new Error('server error');
-  }
-  const data = await res.json();
-  return data;
-}
-
 function Expenses() {
-  const { isPending, error, data } = useQuery({
-    queryKey: ['get-all-expenses'],
-    queryFn: getAllExpenses,
-  });
+  const { isPending, error, data } = useQuery(getAllExpensesQueryOptions);
 
   if (error) return 'An error has occurred: ' + error.message;
 

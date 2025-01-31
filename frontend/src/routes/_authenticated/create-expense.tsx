@@ -2,18 +2,18 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-
 import { useForm } from '@tanstack/react-form';
-import { api } from '@/lib/api';
+import { createExpense, getAllExpensesQueryOptions } from '@/lib/api';
 import { Calendar } from '@/components/ui/calendar';
-
 import { createExpenseSchema } from '@server/sharedTypes';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/_authenticated/create-expense')({
   component: CreateExpense,
 });
 
 function CreateExpense() {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const form = useForm({
     defaultValues: {
@@ -22,14 +22,18 @@ function CreateExpense() {
       date: new Date().toISOString(),
     },
     onSubmit: async ({ value }) => {
-      // Do something with form data
-      const res = await api.expenses.$post({
-        json: value,
-      });
-      if (!res.ok) {
-        throw new Error('server error');
-      }
+      const existingExpenses = await queryClient.ensureQueryData(
+        getAllExpensesQueryOptions
+      );
+
       navigate({ to: '/expenses' });
+
+      const newExpense = await createExpense({ value });
+
+      queryClient.setQueryData(getAllExpensesQueryOptions.queryKey, {
+        ...existingExpenses,
+        expenses: [newExpense, ...existingExpenses.expenses],
+      });
     },
   });
 
@@ -50,7 +54,6 @@ function CreateExpense() {
             onChange: createExpenseSchema.shape.title,
           }}
           children={(field) => {
-            // Avoid hasty abstractions. Render props are great!
             return (
               <div>
                 <Label htmlFor={field.name}>Title</Label>
@@ -76,7 +79,6 @@ function CreateExpense() {
             onChange: createExpenseSchema.shape.amount,
           }}
           children={(field) => {
-            // Avoid hasty abstractions. Render props are great!
             return (
               <div>
                 <Label htmlFor={field.name}>Amount</Label>
@@ -102,21 +104,18 @@ function CreateExpense() {
           validators={{
             onChange: createExpenseSchema.shape.date,
           }}
-          children={
-            (field) => (
-              <div className="self-center">
-                <Calendar
-                  mode="single"
-                  selected={new Date(field.state.value)}
-                  onSelect={(date) =>
-                    field.handleChange((date ?? new Date()).toISOString())
-                  }
-                  className="rounded-md border"
-                />
-              </div>
-            )
-            // Avoid hasty abstractions. Render props are great!
-          }
+          children={(field) => (
+            <div className="self-center">
+              <Calendar
+                mode="single"
+                selected={new Date(field.state.value)}
+                onSelect={(date) =>
+                  field.handleChange((date ?? new Date()).toISOString())
+                }
+                className="rounded-md border"
+              />
+            </div>
+          )}
         />
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting]}
