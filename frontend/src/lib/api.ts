@@ -43,3 +43,13 @@ export const getAllExpensesQueryOptions = queryOptions({
   queryFn: getAllExpenses,
   staleTime: 1000 * 60 * 5,
 });
+
+export const loadingCreateExpenseQueryOptions = queryOptions<{
+  expense?: CreateExpense;
+}>({
+  queryKey: ['loading-create-expense'],
+  queryFn: async () => {
+    return {};
+  },
+  staleTime: Infinity,
+});

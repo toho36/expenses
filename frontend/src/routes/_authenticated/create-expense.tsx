@@ -3,7 +3,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useForm } from '@tanstack/react-form';
-import { createExpense, getAllExpensesQueryOptions } from '@/lib/api';
+import {
+  createExpense,
+  getAllExpensesQueryOptions,
+  loadingCreateExpenseQueryOptions,
+} from '@/lib/api';
+import { toast } from 'sonner';
 import { Calendar } from '@/components/ui/calendar';
 import { createExpenseSchema } from '@server/sharedTypes';
 import { useQueryClient } from '@tanstack/react-query';
@@ -28,12 +33,34 @@ function CreateExpense() {
 
       navigate({ to: '/expenses' });
 
-      const newExpense = await createExpense({ value });
-
-      queryClient.setQueryData(getAllExpensesQueryOptions.queryKey, {
-        ...existingExpenses,
-        expenses: [newExpense, ...existingExpenses.expenses],
+      queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, {
+        expense: value,
       });
+
+      try {
+        const newExpense = await createExpense({ value });
+
+        // Update the list of expenses with the new expense
+
+        queryClient.setQueryData(getAllExpensesQueryOptions.queryKey, {
+          ...existingExpenses,
+          expenses: [newExpense, ...existingExpenses.expenses],
+        });
+
+        toast('Expense Created', {
+          description: `Successfully created new expense: ${newExpense.id}`,
+        });
+
+        // success state
+      } catch {
+        // error state
+        toast('Error', {
+          description: 'Failed to create new expense',
+        });
+      } finally {
+        // Reset loading state
+        queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, {});
+      }
     },
   });
 
