@@ -1,8 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   getAllExpensesQueryOptions,
   loadingCreateExpenseQueryOptions,
+  deleteExpense,
 } from '@/lib/api';
 import {
   Table,
@@ -17,6 +18,9 @@ export const Route = createFileRoute('/_authenticated/expenses')({
   component: Expenses,
 });
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { Trash } from 'lucide-react';
+import { toast } from 'sonner';
 
 function Expenses() {
   const { isPending, error, data } = useQuery(getAllExpensesQueryOptions);
@@ -36,6 +40,7 @@ function Expenses() {
             <TableHead>Title</TableHead>
             <TableHead>Date</TableHead>
             <TableHead>Amount</TableHead>
+            <TableHead>Delete</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -48,6 +53,9 @@ function Expenses() {
               <TableCell>{loadingCreateExpense?.expense.amount}</TableCell>
               <TableCell>
                 {loadingCreateExpense?.expense.date.split('T')[0]}
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4" />
               </TableCell>
             </TableRow>
           )}
@@ -68,6 +76,9 @@ function Expenses() {
                     <TableCell>
                       <Skeleton className="h-4" />
                     </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4" />
+                    </TableCell>
                   </TableRow>
                 ))
             : data.expenses.map((expense) => (
@@ -76,10 +87,49 @@ function Expenses() {
                   <TableCell>{expense.title}</TableCell>
                   <TableCell>{expense.date}</TableCell>
                   <TableCell>{expense.amount}</TableCell>
+                  <TableCell>
+                    <ExpenseDeleteButton id={expense.id} />
+                  </TableCell>
                 </TableRow>
               ))}
         </TableBody>
       </Table>
     </div>
+  );
+}
+
+function ExpenseDeleteButton({ id }: { id: number }) {
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: deleteExpense,
+    onError: () => {
+      toast('Error', {
+        description: `Failed to delete expense: ${id}`,
+      });
+    },
+    onSuccess: () => {
+      toast('Expense Deleted', {
+        description: `Successfully deleted expense: ${id}`,
+      });
+
+      queryClient.setQueryData(
+        getAllExpensesQueryOptions.queryKey,
+        (existingExpenses) => ({
+          ...existingExpenses,
+          expenses: existingExpenses!.expenses.filter((e) => e.id !== id),
+        })
+      );
+    },
+  });
+
+  return (
+    <Button
+      disabled={mutation.isPending}
+      onClick={() => mutation.mutate({ id })}
+      variant="outline"
+      size="icon"
+    >
+      <Trash />
+    </Button>
   );
 }
