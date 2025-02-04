@@ -33,6 +33,7 @@ export const insertExpensesSchema = createInsertSchema(expenses, {
   amount: z
     .string()
     .regex(/^\d+(.\d{1,2})?$/, { message: 'Amount must be a monetary value' }),
+  date: z.string().datetime(),
 });
 
 // Schema for selecting an Expenses - can be used to validate API responses

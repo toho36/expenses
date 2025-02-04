@@ -2,18 +2,23 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-
 import { useForm } from '@tanstack/react-form';
-import { api } from '@/lib/api';
+import {
+  createExpense,
+  getAllExpensesQueryOptions,
+  loadingCreateExpenseQueryOptions,
+} from '@/lib/api';
+import { toast } from 'sonner';
 import { Calendar } from '@/components/ui/calendar';
-
 import { createExpenseSchema } from '@server/sharedTypes';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const Route = createFileRoute('/_authenticated/create-expense')({
   component: CreateExpense,
 });
 
 function CreateExpense() {
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const form = useForm({
     defaultValues: {
@@ -22,14 +27,40 @@ function CreateExpense() {
       date: new Date().toISOString(),
     },
     onSubmit: async ({ value }) => {
-      // Do something with form data
-      const res = await api.expenses.$post({
-        json: value,
-      });
-      if (!res.ok) {
-        throw new Error('server error');
-      }
+      const existingExpenses = await queryClient.ensureQueryData(
+        getAllExpensesQueryOptions
+      );
+
       navigate({ to: '/expenses' });
+
+      queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, {
+        expense: value,
+      });
+
+      try {
+        const newExpense = await createExpense({ value });
+
+        // Update the list of expenses with the new expense
+
+        queryClient.setQueryData(getAllExpensesQueryOptions.queryKey, {
+          ...existingExpenses,
+          expenses: [newExpense, ...existingExpenses.expenses],
+        });
+
+        toast('Expense Created', {
+          description: `Successfully created new expense: ${newExpense.id}`,
+        });
+
+        // success state
+      } catch {
+        // error state
+        toast('Error', {
+          description: 'Failed to create new expense',
+        });
+      } finally {
+        // Reset loading state
+        queryClient.setQueryData(loadingCreateExpenseQueryOptions.queryKey, {});
+      }
     },
   });
 
@@ -50,7 +81,6 @@ function CreateExpense() {
             onChange: createExpenseSchema.shape.title,
           }}
           children={(field) => {
-            // Avoid hasty abstractions. Render props are great!
             return (
               <div>
                 <Label htmlFor={field.name}>Title</Label>
@@ -76,7 +106,6 @@ function CreateExpense() {
             onChange: createExpenseSchema.shape.amount,
           }}
           children={(field) => {
-            // Avoid hasty abstractions. Render props are great!
             return (
               <div>
                 <Label htmlFor={field.name}>Amount</Label>
@@ -102,21 +131,18 @@ function CreateExpense() {
           validators={{
             onChange: createExpenseSchema.shape.date,
           }}
-          children={
-            (field) => (
-              <div className="self-center">
-                <Calendar
-                  mode="single"
-                  selected={new Date(field.state.value)}
-                  onSelect={(date) =>
-                    field.handleChange((date ?? new Date()).toISOString())
-                  }
-                  className="rounded-md border"
-                />
-              </div>
-            )
-            // Avoid hasty abstractions. Render props are great!
-          }
+          children={(field) => (
+            <div className="self-center">
+              <Calendar
+                mode="single"
+                selected={new Date(field.state.value)}
+                onSelect={(date) =>
+                  field.handleChange((date ?? new Date()).toISOString())
+                }
+                className="rounded-md border"
+              />
+            </div>
+          )}
         />
         <form.Subscribe
           selector={(state) => [state.canSubmit, state.isSubmitting]}
