@@ -1,6 +1,6 @@
 import { Outlet } from '@tanstack/react-router';
 import { createFileRoute } from '@tanstack/react-router';
-import { userQueryOptions } from '@/lib/api';
+import { userQueryOptions } from '@/lib/query-options';
 import { Button } from '@/components/ui/button';
 
 // Login Component

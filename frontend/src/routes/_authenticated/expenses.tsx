@@ -1,10 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  getAllExpensesQueryOptions,
-  loadingCreateExpenseQueryOptions,
-  deleteExpense,
-} from '@/lib/api';
+import { useQuery } from '@tanstack/react-query';
+import { ExpenseDeleteButton } from '@/components/expenses/expense-delete-button';
+import { getAllExpensesQueryOptions } from '@/lib/query-options/expenses';
+import { loadingCreateExpenseQueryOptions } from '@/lib/query-options/expenses';
 import {
   Table,
   TableBody,
@@ -18,10 +16,6 @@ export const Route = createFileRoute('/_authenticated/expenses')({
   component: Expenses,
 });
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Trash } from 'lucide-react';
-import { toast } from 'sonner';
-
 function Expenses() {
   const { isPending, error, data } = useQuery(getAllExpensesQueryOptions);
   const { data: loadingCreateExpense } = useQuery(
@@ -95,41 +89,5 @@ function Expenses() {
         </TableBody>
       </Table>
     </div>
-  );
-}
-
-function ExpenseDeleteButton({ id }: { id: number }) {
-  const queryClient = useQueryClient();
-  const mutation = useMutation({
-    mutationFn: deleteExpense,
-    onError: () => {
-      toast('Error', {
-        description: `Failed to delete expense: ${id}`,
-      });
-    },
-    onSuccess: () => {
-      toast('Expense Deleted', {
-        description: `Successfully deleted expense: ${id}`,
-      });
-
-      queryClient.setQueryData(
-        getAllExpensesQueryOptions.queryKey,
-        (existingExpenses) => ({
-          ...existingExpenses,
-          expenses: existingExpenses!.expenses.filter((e) => e.id !== id),
-        })
-      );
-    },
-  });
-
-  return (
-    <Button
-      disabled={mutation.isPending}
-      onClick={() => mutation.mutate({ id })}
-      variant="outline"
-      size="icon"
-    >
-      <Trash />
-    </Button>
   );
 }
